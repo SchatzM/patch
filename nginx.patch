@@ -11,7 +11,7 @@ diff -uNr a/auto/modules b/auto/modules
      #     ngx_http_header_filter
      #     ngx_http_chunked_filter
      #     ngx_http_v2_filter
-+    #     ngx_http_spdy_filter
++    #     
      #     ngx_http_range_header_filter
      #     ngx_http_gzip_filter
      #     ngx_http_postpone_filter
@@ -19,7 +19,7 @@ diff -uNr a/auto/modules b/auto/modules
                        ngx_http_header_filter_module \
                        ngx_http_chunked_filter_module \
                        ngx_http_v2_filter_module \
-+                      ngx_http_spdy_filter_module \
++                      
                        ngx_http_range_header_filter_module \
                        ngx_http_gzip_filter_module \
                        ngx_http_postpone_filter_module \
