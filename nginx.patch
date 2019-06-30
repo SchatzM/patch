@@ -49,17 +49,6 @@ diff -uNr a/auto/options b/auto/options
    --with-http_addition_module        enable ngx_http_addition_module
    --with-http_xslt_module            enable ngx_http_xslt_module
 diff -uNr a/src/core/ngx_connection.h b/src/core/ngx_connection.h
---- a/src/core/ngx_connection.h	2018-12-25 22:53:03.000000000 +0800
-+++ b/src/core/ngx_connection.h	2018-12-25 23:25:30.196756766 +0800
-@@ -119,6 +119,7 @@
- #define NGX_LOWLEVEL_BUFFERED  0x0f
- #define NGX_SSL_BUFFERED       0x01
- #define NGX_HTTP_V2_BUFFERED   0x02
-+#define NGX_SPDY_BUFFERED      0x04
- 
- 
- struct ngx_connection_s {
-diff -uNr a/src/core/ngx_murmurhash.c b/src/core/ngx_murmurhash.c
 --- a/src/core/ngx_murmurhash.c	2018-12-25 22:53:03.000000000 +0800
 +++ b/src/core/ngx_murmurhash.c	2018-12-25 23:25:30.196756766 +0800
 @@ -50,3 +50,63 @@
@@ -293,28 +282,27 @@ diff -uNr a/src/http/modules/ngx_http_ssl_module.c b/src/http/modules/ngx_http_s
      unsigned int            i;
  #endif
 -#if (NGX_HTTP_V2)
-+#if (NGX_HTTP_V2 || NGX_HTTP_SPDY)
++#if (NGX_HTTP_V2)
      ngx_http_connection_t  *hc;
  #endif
 -#if (NGX_HTTP_V2 || NGX_DEBUG)
-+#if (NGX_HTTP_V2 || NGX_HTTP_SPDY || NGX_DEBUG)
++#if (NGX_HTTP_V2 || NGX_DEBUG)
      ngx_connection_t       *c;
  
      c = ngx_ssl_get_connection(ssl_conn);
-@@ -385,9 +420,20 @@
+@@ -385,9 +420,19 @@
      }
  #endif
  
--#if (NGX_HTTP_V2)
-+#if (NGX_HTTP_V2 || NGX_HTTP_SPDY)
+
      hc = c->data;
 +#endif
 +
-+#if (NGX_HTTP_V2 && NGX_HTTP_SPDY)
-+    if (hc->addr_conf->http2 && hc->addr_conf->spdy) {
++#if (NGX_HTTP_V2)
++    if (hc->addr_conf->http2) {
 +        srv = (unsigned char *) NGX_HTTP_V2_ALPN_ADVERTISE
-+                                NGX_SPDY_NPN_ADVERTISE NGX_HTTP_NPN_ADVERTISE;
-+        srvlen = sizeof(NGX_HTTP_V2_ALPN_ADVERTISE NGX_SPDY_NPN_ADVERTISE
++                                NGX_HTTP_NPN_ADVERTISE;
++        srvlen = sizeof(NGX_HTTP_V2_ALPN_ADVERTISE
 +                        NGX_HTTP_NPN_ADVERTISE) - 1;
  
 +    } else
@@ -323,20 +311,6 @@ diff -uNr a/src/http/modules/ngx_http_ssl_module.c b/src/http/modules/ngx_http_s
      if (hc->addr_conf->http2) {
          srv =
             (unsigned char *) NGX_HTTP_V2_ALPN_ADVERTISE NGX_HTTP_NPN_ADVERTISE;
-@@ -395,6 +441,13 @@
- 
-     } else
- #endif
-+#if (NGX_HTTP_SPDY)
-+    if (hc->addr_conf->spdy) {
-+        srv = (unsigned char *) NGX_SPDY_NPN_ADVERTISE NGX_HTTP_NPN_ADVERTISE;
-+        srvlen = sizeof(NGX_SPDY_NPN_ADVERTISE NGX_HTTP_NPN_ADVERTISE) - 1;
-+
-+    } else
-+#endif
-     {
-         srv = (unsigned char *) NGX_HTTP_NPN_ADVERTISE;
-         srvlen = sizeof(NGX_HTTP_NPN_ADVERTISE) - 1;
 @@ -422,19 +475,32 @@
  ngx_http_ssl_npn_advertised(ngx_ssl_conn_t *ssl_conn,
      const unsigned char **out, unsigned int *outlen, void *arg)
