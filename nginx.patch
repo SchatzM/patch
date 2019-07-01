@@ -20,13 +20,15 @@ diff -uNr a/auto/modules b/auto/modules
 diff -uNr a/auto/options b/auto/options
 --- a/auto/options	2018-12-25 22:53:03.000000000 +0800
 +++ b/auto/options	2018-12-25 23:25:30.196756766 +0800
-@@ -58,5 +58,6 @@
+@@ -58,7 +58,8 @@
  HTTP_CHARSET=YES
  HTTP_GZIP=YES
  HTTP_SSL=NO
  HTTP_V2=NO
 +HTTP_V2_HPACK_ENC=NO
  HTTP_SSI=YES
+ HTTP_POSTPONE=NO
+ HTTP_REALIP=NO
 @@ -224,7 +226,8 @@
          --http-scgi-temp-path=*)         NGX_HTTP_SCGI_TEMP_PATH="$value" ;;
  
